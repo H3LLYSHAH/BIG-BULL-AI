@@ -4,6 +4,7 @@ import WalletManager from './components/WalletManager';
 import TransactionCards3D from './components/TransactionCards3D';
 import TaxSummary from './components/TaxSummary';
 import Login from './components/Login';
+import MfaGate from './components/MfaGate';
 import LiveTicker from './components/LiveTicker';
 import ClassifiedTransactions3D from './components/ClassifiedTransactions3D';
 import ProofOfExistenceSeal from './components/ProofOfExistenceSeal';
@@ -96,6 +97,7 @@ export default function App() {
   return (
     <>
       <MoneyRainBackground />
+      <MfaGate user={user}>
       <div className="app-shell">
         <header className="app-header">
           <p className="app-header__eyebrow">Realized Gains Ledger</p>
@@ -153,6 +155,7 @@ export default function App() {
           </div>
         )}
       </div>
+      </MfaGate>
     </>
   );
 }
