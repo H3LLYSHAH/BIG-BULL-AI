@@ -1,4 +1,3 @@
-cd /home/claude/BIG-BULL-AI && cat > src/hooks/useAuth.js << 'EOF'
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 
@@ -27,5 +26,3 @@ export function useAuth() {
 
   return user;
 }
-EOF
-echo "done"
