@@ -46,7 +46,7 @@ export default function App() {
     setSaveError(null);
   }
 
-  // Auto-save the combined session to Firebase whenever the ledger changes.
+  // Auto-save the combined session to Supabase whenever the ledger changes.
   useEffect(() => {
     if (!user || !ledger) return;
     let cancelled = false;
@@ -55,7 +55,7 @@ export default function App() {
       setSaveStatus('saving');
       setSaveError(null);
       try {
-        await saveSession(user.uid, sessionId, {
+        await saveSession(user.id, sessionId, {
           csvFile: null,
           rows: ledger.rows,
           summary: ledger.summary,
