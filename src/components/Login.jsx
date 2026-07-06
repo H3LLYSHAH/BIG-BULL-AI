@@ -1,4 +1,3 @@
-cd /home/claude/BIG-BULL-AI && cat > src/components/Login.jsx << 'EOF'
 import { useState } from 'react';
 import { supabase } from '../supabase';
 
@@ -87,5 +86,3 @@ export default function Login() {
     </div>
   );
 }
-EOF
-echo "done"
