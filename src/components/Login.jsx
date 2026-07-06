@@ -1,10 +1,6 @@
+cd /home/claude/BIG-BULL-AI && cat > src/components/Login.jsx << 'EOF'
 import { useState } from 'react';
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { supabase } from '../supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,12 +8,14 @@ export default function Login() {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState(null);
 
   async function handleGoogle() {
     setError(null);
     setBusy(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) throw error;
     } catch (err) {
       setError(err.message);
     } finally {
@@ -28,12 +26,16 @@ export default function Login() {
   async function handleEmailSubmit(e) {
     e.preventDefault();
     setError(null);
+    setNotice(null);
     setBusy(true);
     try {
       if (mode === 'signup') {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        setNotice('Check your email to confirm your account.');
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
       }
     } catch (err) {
       setError(err.message);
@@ -74,6 +76,7 @@ export default function Login() {
       </form>
 
       {error && <p className="login-panel__error">{error}</p>}
+      {notice && <p className="login-panel__notice">{notice}</p>}
 
       <button
         className="login-panel__switch"
@@ -84,3 +87,5 @@ export default function Login() {
     </div>
   );
 }
+EOF
+echo "done"
