@@ -1,6 +1,6 @@
+cd /home/claude/BIG-BULL-AI && cat > src/hooks/useAuth.js << 'EOF'
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 
 /**
  * useAuth
@@ -8,15 +8,24 @@ import { auth } from '../firebase';
  * Returns:
  *   undefined  -> still checking (show a loading state)
  *   null       -> signed out
- *   User       -> signed-in Firebase user object
+ *   User       -> signed-in Supabase user object (use user.id, not user.uid)
  */
 export function useAuth() {
   const [user, setUser] = useState(undefined);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
-    return unsubscribe;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   return user;
 }
+EOF
+echo "done"
