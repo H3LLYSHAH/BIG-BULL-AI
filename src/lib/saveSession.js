@@ -1,4 +1,3 @@
-cd /home/claude/BIG-BULL-AI && cat > src/lib/saveSession.js << 'EOF'
 import { supabase } from '../supabase';
 
 /**
@@ -51,5 +50,3 @@ export async function saveSession(userId, sessionId, { csvFile, rows, summary })
 
   if (error) throw error;
 }
-EOF
-echo "done"
