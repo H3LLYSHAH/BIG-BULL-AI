@@ -1,0 +1,170 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&display=swap");
+
+.landing {
+  background: radial-gradient(ellipse at 50% 0%, #101226 0%, #05050a 60%);
+  color: #eef1f6;
+  font-family: "Inter", system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ---------- Hero ---------- */
+
+.landing__hero {
+  position: relative;
+  height: 100vh;
+  min-height: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero3d {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.landing__hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  text-align: center;
+  padding: 0 24px;
+  pointer-events: none; /* let clicks pass through except on real controls */
+}
+
+.landing__hero-content > * {
+  pointer-events: auto;
+}
+
+.landing__eyebrow {
+  display: inline-block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: #00d4ff;
+  margin-bottom: 20px;
+}
+
+.landing__headline {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.15;
+  margin: 0 0 20px;
+  letter-spacing: -0.01em;
+}
+
+.landing__subhead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #aab3c2;
+  margin: 0 0 32px;
+}
+
+.landing__cta-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing__cta {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 13px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing__cta:hover {
+  transform: translateY(-1px);
+}
+
+.landing__cta--primary {
+  background: linear-gradient(135deg, #2dd6a0, #00d4ff);
+  color: #05050a;
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.25);
+}
+
+.landing__cta--primary:hover {
+  box-shadow: 0 0 32px rgba(0, 212, 255, 0.4);
+}
+
+.landing__cta--ghost {
+  color: #eef1f6;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.landing__cta--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+/* ---------- Features (flat, no 3D) ---------- */
+
+.landing__features {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 60px 24px 100px;
+}
+
+@media (max-width: 780px) {
+  .landing__features {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing__feature-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 28px 24px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.landing__feature-card:hover {
+  border-color: rgba(0, 212, 255, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.landing__feature-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: #2dd6a0;
+}
+
+.landing__feature-card h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.15rem;
+  margin: 10px 0 10px;
+}
+
+.landing__feature-card p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #aab3c2;
+  margin: 0;
+}
+
+.landing__badge {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: #ff4d6d;
+  border: 1px solid rgba(255, 77, 109, 0.4);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
