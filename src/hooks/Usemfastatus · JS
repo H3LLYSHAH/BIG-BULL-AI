@@ -1,0 +1,56 @@
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '../supabase';
+
+/**
+ * useMfaStatus
+ * ------------
+ * Returns:
+ *   { status: 'checking' }                        -> still loading
+ *   { status: 'needs-enroll' }                     -> no verified TOTP factor yet
+ *   { status: 'needs-challenge', factorId }        -> factor exists, session not yet aal2
+ *   { status: 'ready' }                            -> session is aal2, fully verified
+ * Call `refresh()` after enroll/verify to re-check.
+ */
+export function useMfaStatus(user) {
+  const [state, setState] = useState({ status: 'checking' });
+
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setState({ status: 'checking' });
+      return;
+    }
+
+    setState({ status: 'checking' });
+
+    const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
+    if (factorsError) {
+      setState({ status: 'needs-enroll', error: factorsError.message });
+      return;
+    }
+
+    const verifiedTotp = factorsData.totp?.find((f) => f.status === 'verified');
+
+    if (!verifiedTotp) {
+      setState({ status: 'needs-enroll' });
+      return;
+    }
+
+    const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) {
+      setState({ status: 'needs-challenge', factorId: verifiedTotp.id, error: aalError.message });
+      return;
+    }
+
+    if (aalData.currentLevel === 'aal2') {
+      setState({ status: 'ready' });
+    } else {
+      setState({ status: 'needs-challenge', factorId: verifiedTotp.id });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { ...state, refresh };
+}
