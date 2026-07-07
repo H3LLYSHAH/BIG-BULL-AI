@@ -13,8 +13,9 @@ import TaxMethodSelector from './components/TaxMethodSelector';
 import Charts3D from './components/Charts3D';
 import ExportPackage from './components/ExportPackage';
 import { useAuth } from './hooks/useAuth';
+import { useLivePrices } from './hooks/useLivePrices';
 import { saveSession } from './lib/saveSession';
-import { computeLedger } from './lib/costBasisMethods';
+import { computeLedger, computeOpenPositions } from './lib/costBasisMethods';
 import ChatbotWidget from "./ChatbotWidget";
 import './theme.css';
 
@@ -40,6 +41,32 @@ export default function App() {
   const ledger = useMemo(
     () => (combinedRows.length ? computeLedger(combinedRows, taxMethod) : null),
     [combinedRows, taxMethod]
+  );
+
+  // What's still actually held right now (quantity + avg cost per asset),
+  // independent of realized-gain rows — this is what the chatbot needs.
+  const openPositions = useMemo(
+    () => (combinedRows.length ? computeOpenPositions(combinedRows, taxMethod) : []),
+    [combinedRows, taxMethod]
+  );
+
+  // Live prices for whatever assets are actually held — no more hardcoded
+  // BTC/ETH list. Falls back to a default watchlist until positions exist.
+  const heldSymbols = useMemo(() => openPositions.map((p) => p.asset), [openPositions]);
+  const livePrices = useLivePrices(heldSymbols.length ? heldSymbols : ['BTC', 'ETH', 'SOL']);
+
+  // Merge open positions with live prices into the shape ChatbotWidget expects.
+  const chatbotPortfolio = useMemo(
+    () =>
+      openPositions
+        .filter((p) => livePrices[p.asset])
+        .map((p) => ({
+          asset: p.asset,
+          quantity: p.quantity,
+          avgBuyPrice: p.avgBuyPrice,
+          currentPrice: livePrices[p.asset].price,
+        })),
+    [openPositions, livePrices]
   );
 
   function handleReset() {
@@ -158,15 +185,10 @@ export default function App() {
             </div>
           )}
 
-          {/* Floating chatbot — moved outside the {ledger && ...} block so it's
-              visible even before any wallet/transactions are added. Still using
-              placeholder numbers below until costBasisMethods.js is wired in. */}
-          <ChatbotWidget
-            portfolio={[
-              { asset: 'BTC', quantity: 0.42, avgBuyPrice: 51000, currentPrice: 63551 },
-              { asset: 'ETH', quantity: 3.1, avgBuyPrice: 1900, currentPrice: 1782.8 },
-            ]}
-          />
+          {/* Floating chatbot — now fed real open positions × live prices
+              instead of the hardcoded BTC/ETH example. It'll have nothing
+              to answer from until at least one wallet has transactions. */}
+          <ChatbotWidget portfolio={chatbotPortfolio} />
         </div>
       </MfaGate>
     </>
