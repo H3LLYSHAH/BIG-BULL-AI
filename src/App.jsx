@@ -99,67 +99,75 @@ export default function App() {
     <>
       <MoneyRainBackground />
       <MfaGate user={user}>
-      <div className="app-shell">
-        <header className="app-header">
-          <p className="app-header__eyebrow">Realized Gains Ledger</p>
-          <h1 className="app-header__title">
-            Know what you <em>owe</em>, before it's owed.
-          </h1>
-          <p className="app-header__subtitle">
-            Add one or more wallets and get an instant, cost-basis-matched breakdown of
-            short- and long-term gains across all of them — a working estimate, not a filing.
-          </p>
-          <LiveTicker symbols={['BTC', 'ETH', 'SOL']} />
-        </header>
+        <div className="app-shell">
+          <header className="app-header">
+            <p className="app-header__eyebrow">Realized Gains Ledger</p>
+            <h1 className="app-header__title">
+              The most expensive thing in the world is <em>trust</em>.
+              <br />
+              Cheap people can't afford it.
+            </h1>
+            <p className="app-header__subtitle">
+              Add one or more wallets and get an instant, cost-basis-matched breakdown of
+              short- and long-term gains across all of them — a working estimate, not a filing.
+            </p>
+            <LiveTicker symbols={['BTC', 'ETH', 'SOL']} />
+          </header>
 
-        <WalletManager taxMethod={taxMethod} onWalletsChange={setWallets} />
+          <WalletManager taxMethod={taxMethod} onWalletsChange={setWallets} />
 
-        {ledger && (
-          <div className="workspace">
-            <div className="workspace__toolbar">
-              <span className="workspace__toolbar-title">
-                {ledger.summary.transactionCount} transactions across{' '}
-                {wallets.filter((w) => w.included).length} wallet
-                {wallets.filter((w) => w.included).length === 1 ? '' : 's'}
-              </span>
-              <span className="workspace__save-status">
-                {saveStatus === 'saving' && 'Saving…'}
-                {saveStatus === 'saved' && 'Saved to your account'}
-                {saveStatus === 'error' && `Save failed: ${saveError}`}
-              </span>
-              <button className="workspace__reset" onClick={handleReset}>
-                Clear all wallets
-              </button>
+          {ledger && (
+            <div className="workspace">
+              <div className="workspace__toolbar">
+                <span className="workspace__toolbar-title">
+                  {ledger.summary.transactionCount} transactions across{' '}
+                  {wallets.filter((w) => w.included).length} wallet
+                  {wallets.filter((w) => w.included).length === 1 ? '' : 's'}
+                </span>
+                <span className="workspace__save-status">
+                  {saveStatus === 'saving' && 'Saving…'}
+                  {saveStatus === 'saved' && 'Saved to your account'}
+                  {saveStatus === 'error' && `Save failed: ${saveError}`}
+                </span>
+                <button className="workspace__reset" onClick={handleReset}>
+                  Clear all wallets
+                </button>
+              </div>
+
+              <TaxMethodSelector value={taxMethod} onChange={setTaxMethod} />
+
+              <TransactionCards3D rows={ledger.rows} />
+
+              <ClassifiedTransactions3D transactions={ledger.rows} />
+
+              <Charts3D rows={ledger.rows} />
+
+              <TaxSummary summary={ledger.summary} />
+
+              <ProofOfExistenceSeal
+                transactions={ledger.rows}
+                summary={ledger.summary}
+                uid={user.uid}
+              />
+
+              <ExportPackage
+                transactions={ledger.rows}
+                summary={ledger.summary}
+                taxMethod={taxMethod}
+              />
             </div>
+          )}
 
-            <TaxMethodSelector value={taxMethod} onChange={setTaxMethod} />
-
-            <TransactionCards3D rows={ledger.rows} />
-
-            <ClassifiedTransactions3D transactions={ledger.rows} />
-
-            <Charts3D rows={ledger.rows} />
-
-            <TaxSummary summary={ledger.summary} />
-
-            <ProofOfExistenceSeal
-              transactions={ledger.rows}
-              summary={ledger.summary}
-              uid={user.uid}
-            />
-            <ChatbotWidget portfolio={[
-  { asset: "BTC", quantity: 0.42, avgBuyPrice: 51000, currentPrice: 63551 },
-  { asset: "ETH", quantity: 3.1, avgBuyPrice: 1900, currentPrice: 1782.8 },
-]} />
-
-            <ExportPackage
-              transactions={ledger.rows}
-              summary={ledger.summary}
-              taxMethod={taxMethod}
-            />
-          </div>
-        )}
-      </div>
+          {/* Floating chatbot — moved outside the {ledger && ...} block so it's
+              visible even before any wallet/transactions are added. Still using
+              placeholder numbers below until costBasisMethods.js is wired in. */}
+          <ChatbotWidget
+            portfolio={[
+              { asset: 'BTC', quantity: 0.42, avgBuyPrice: 51000, currentPrice: 63551 },
+              { asset: 'ETH', quantity: 3.1, avgBuyPrice: 1900, currentPrice: 1782.8 },
+            ]}
+          />
+        </div>
       </MfaGate>
     </>
   );
