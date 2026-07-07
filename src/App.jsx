@@ -16,7 +16,7 @@ import { useAuth } from './hooks/useAuth';
 import { useLivePrices } from './hooks/useLivePrices';
 import { saveSession } from './lib/saveSession';
 import { computeLedger, computeOpenPositions } from './lib/costBasisMethods';
-import ChatbotWidget from "./ChatbotWidget";
+import ChatbotWidget from "./components/ChatbotWidget";
 import './theme.css';
 
 export default function App() {
