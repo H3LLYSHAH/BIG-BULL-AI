@@ -15,6 +15,7 @@ import ExportPackage from './components/ExportPackage';
 import { useAuth } from './hooks/useAuth';
 import { saveSession } from './lib/saveSession';
 import { computeLedger } from './lib/costBasisMethods';
+import ChatbotWidget from "./ChatbotWidget";
 import './theme.css';
 
 export default function App() {
@@ -146,6 +147,10 @@ export default function App() {
               summary={ledger.summary}
               uid={user.uid}
             />
+            <ChatbotWidget portfolio={[
+  { asset: "BTC", quantity: 0.42, avgBuyPrice: 51000, currentPrice: 63551 },
+  { asset: "ETH", quantity: 3.1, avgBuyPrice: 1900, currentPrice: 1782.8 },
+]} />
 
             <ExportPackage
               transactions={ledger.rows}
