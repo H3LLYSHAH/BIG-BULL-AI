@@ -15,7 +15,7 @@ import { useAuth } from './hooks/useAuth';
 import { useLivePrices } from './hooks/useLivePrices';
 import { saveSession } from './lib/saveSession';
 import { computeLedger, computeOpenPositions } from './lib/costBasisMethods';
-import ChatbotWidget from "./components/ChatbotWidget";
+import ChatbotWidget from "./ChatbotWidget";
 import './theme.css';
 
 export default function App() {
@@ -135,59 +135,3 @@ export default function App() {
           <p className="app-header__subtitle">
             Add one or more wallets and get an instant, cost-basis-matched breakdown of
             short- and long-term gains across all of them — a working estimate, not a filing.
-          </p>
-          <LiveTicker symbols={['BTC', 'ETH', 'SOL']} />
-        </header>
-
-        <WalletManager taxMethod={taxMethod} onWalletsChange={setWallets} />
-
-        {ledger && (
-          <div className="workspace">
-            <div className="workspace__toolbar">
-              <span className="workspace__toolbar-title">
-                {ledger.summary.transactionCount} transactions across{' '}
-                {wallets.filter((w) => w.included).length} wallet
-                {wallets.filter((w) => w.included).length === 1 ? '' : 's'}
-              </span>
-              <span className="workspace__save-status">
-                {saveStatus === 'saving' && 'Saving…'}
-                {saveStatus === 'saved' && 'Saved to your account'}
-                {saveStatus === 'error' && `Save failed: ${saveError}`}
-              </span>
-              <button className="workspace__reset" onClick={handleReset}>
-                Clear all wallets
-              </button>
-            </div>
-
-            <TaxMethodSelector value={taxMethod} onChange={setTaxMethod} />
-
-            <TransactionCards3D rows={ledger.rows} />
-
-            <ClassifiedTransactions3D transactions={ledger.rows} />
-
-            <Charts3D rows={ledger.rows} />
-
-            <TaxSummary summary={ledger.summary} />
-
-            <ProofOfExistenceSeal
-              transactions={ledger.rows}
-              summary={ledger.summary}
-              uid={user.uid}
-            />
-
-            <ExportPackage
-              transactions={ledger.rows}
-              summary={ledger.summary}
-              taxMethod={taxMethod}
-            />
-          </div>
-        )}
-
-        {/* Floating chatbot — fed real open positions × live prices instead
-            of hardcoded numbers. It'll have nothing to answer from until at
-            least one wallet has transactions. */}
-        <ChatbotWidget portfolio={chatbotPortfolio} />
-      </div>
-    </>
-  );
-}
