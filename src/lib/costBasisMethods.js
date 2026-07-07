@@ -146,3 +146,101 @@ export function computeLedger(transactions, method = 'FIFO') {
     },
   };
 }
+
+/**
+ * computeOpenPositions(transactions, method)
+ * -------------------------------------------
+ * Runs the exact same lot-consuming logic as computeLedger, but instead of
+ * returning realized gain per sell, it returns what's LEFT — the still-held
+ * quantity and average cost basis per asset. This is what you need for
+ * "what am I holding right now and what did I pay for it" — e.g. feeding
+ * live prices into a profit/loss display or the chatbot.
+ *
+ * Returns: [{ asset, quantity, avgBuyPrice }, ...] — one row per asset that
+ * still has a nonzero open position. avgBuyPrice is cost-basis per unit
+ * (already includes fees), so it's directly comparable to a live market price.
+ */
+export function computeOpenPositions(transactions, method = 'FIFO') {
+  if (!TAX_METHODS.includes(method)) {
+    throw new Error(`Unknown tax method "${method}". Expected one of: ${TAX_METHODS.join(', ')}`);
+  }
+
+  const lotsByAsset = new Map();
+
+  for (const txn of transactions) {
+    if (txn.side === 'buy') {
+      const unitFee = txn.quantity > 0 ? (txn.fee || 0) / txn.quantity : 0;
+      const costBasis = txn.price + unitFee;
+
+      if (method === 'WAC') {
+        const existing = lotsByAsset.get(txn.asset);
+        if (!existing) {
+          lotsByAsset.set(txn.asset, { quantity: txn.quantity, totalCost: costBasis * txn.quantity });
+        } else {
+          existing.quantity += txn.quantity;
+          existing.totalCost += costBasis * txn.quantity;
+        }
+      } else {
+        const lots = lotsByAsset.get(txn.asset) || [];
+        lots.push({ date: txn.date, quantity: txn.quantity, costBasis });
+        lotsByAsset.set(txn.asset, lots);
+      }
+      continue;
+    }
+
+    // sell — consume lots the same way computeLedger does, we just don't
+    // care about the resulting gain here, only what's left afterward.
+    let remaining = txn.quantity;
+
+    if (method === 'WAC') {
+      const pos = lotsByAsset.get(txn.asset);
+      if (pos && pos.quantity > 1e-9) {
+        const avgCost = pos.totalCost / pos.quantity;
+        const matchQty = Math.min(remaining, pos.quantity);
+        pos.totalCost -= avgCost * matchQty;
+        pos.quantity -= matchQty;
+      }
+    } else {
+      const lots = lotsByAsset.get(txn.asset) || [];
+      const orderedLots = method === 'HIFO'
+        ? [...lots].sort((a, b) => b.costBasis - a.costBasis)
+        : method === 'LIFO'
+          ? [...lots].sort((a, b) => b.date - a.date)
+          : lots;
+
+      while (remaining > 1e-9 && orderedLots.length) {
+        const lot = orderedLots[0];
+        const matchQty = Math.min(remaining, lot.quantity);
+        lot.quantity -= matchQty;
+        remaining -= matchQty;
+        if (lot.quantity <= 1e-9) {
+          orderedLots.shift();
+          const idx = lots.indexOf(lot);
+          if (idx !== -1) lots.splice(idx, 1);
+        }
+      }
+    }
+  }
+
+  const positions = [];
+  for (const [asset, value] of lotsByAsset.entries()) {
+    if (method === 'WAC') {
+      if (value.quantity > 1e-9) {
+        positions.push({
+          asset,
+          quantity: value.quantity,
+          avgBuyPrice: value.totalCost / value.quantity,
+        });
+      }
+    } else {
+      const lots = value.filter((lot) => lot.quantity > 1e-9);
+      const quantity = lots.reduce((sum, lot) => sum + lot.quantity, 0);
+      if (quantity > 1e-9) {
+        const totalCost = lots.reduce((sum, lot) => sum + lot.quantity * lot.costBasis, 0);
+        positions.push({ asset, quantity, avgBuyPrice: totalCost / quantity });
+      }
+    }
+  }
+
+  return positions;
+}
