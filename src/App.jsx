@@ -4,7 +4,6 @@ import WalletManager from './components/WalletManager';
 import TransactionCards3D from './components/TransactionCards3D';
 import TaxSummary from './components/TaxSummary';
 import Login from './components/Login';
-import MfaGate from './components/MfaGate';
 import LiveTicker from './components/LiveTicker';
 import ClassifiedTransactions3D from './components/ClassifiedTransactions3D';
 import ProofOfExistenceSeal from './components/ProofOfExistenceSeal';
