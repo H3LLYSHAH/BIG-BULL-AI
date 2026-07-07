@@ -27,8 +27,6 @@ export default function App() {
   const [saveError, setSaveError] = useState(null);
   const [taxMethod, setTaxMethod] = useState('FIFO');
 
-  // Flatten only the wallets the user has left checked into one combined
-  // ledger — this is what "total profit/loss across all wallets" means.
   const combinedRows = useMemo(
     () =>
       wallets
@@ -42,19 +40,14 @@ export default function App() {
     [combinedRows, taxMethod]
   );
 
-  // What's still actually held right now (quantity + avg cost per asset),
-  // independent of realized-gain rows — this is what the chatbot needs.
   const openPositions = useMemo(
     () => (combinedRows.length ? computeOpenPositions(combinedRows, taxMethod) : []),
     [combinedRows, taxMethod]
   );
 
-  // Live prices for whatever assets are actually held — no more hardcoded
-  // BTC/ETH list. Falls back to a default watchlist until positions exist.
   const heldSymbols = useMemo(() => openPositions.map((p) => p.asset), [openPositions]);
   const livePrices = useLivePrices(heldSymbols.length ? heldSymbols : ['BTC', 'ETH', 'SOL']);
 
-  // Merge open positions with live prices into the shape ChatbotWidget expects.
   const chatbotPortfolio = useMemo(
     () =>
       openPositions
@@ -74,7 +67,6 @@ export default function App() {
     setSaveError(null);
   }
 
-  // Auto-save the combined session to Supabase whenever the ledger changes.
   useEffect(() => {
     if (!user || !ledger) return;
     let cancelled = false;
@@ -105,7 +97,7 @@ export default function App() {
   if (user === undefined) {
     return (
       <div className="app-shell app-shell--centered">
-        <CandleLoader3D label="Checking your session…" tone="mixed" />
+        <CandleLoader3D label="Checking your session..." tone="mixed" />
       </div>
     );
   }
@@ -134,4 +126,57 @@ export default function App() {
           </h1>
           <p className="app-header__subtitle">
             Add one or more wallets and get an instant, cost-basis-matched breakdown of
-            short- and long-term gains across all of them — a working estimate, not a filing.
+            short- and long-term gains across all of them - a working estimate, not a filing.
+          </p>
+          <LiveTicker symbols={['BTC', 'ETH', 'SOL']} />
+        </header>
+
+        <WalletManager taxMethod={taxMethod} onWalletsChange={setWallets} />
+
+        {ledger && (
+          <div className="workspace">
+            <div className="workspace__toolbar">
+              <span className="workspace__toolbar-title">
+                {ledger.summary.transactionCount} transactions across{' '}
+                {wallets.filter((w) => w.included).length} wallet
+                {wallets.filter((w) => w.included).length === 1 ? '' : 's'}
+              </span>
+              <span className="workspace__save-status">
+                {saveStatus === 'saving' && 'Saving...'}
+                {saveStatus === 'saved' && 'Saved to your account'}
+                {saveStatus === 'error' && `Save failed: ${saveError}`}
+              </span>
+              <button className="workspace__reset" onClick={handleReset}>
+                Clear all wallets
+              </button>
+            </div>
+
+            <TaxMethodSelector value={taxMethod} onChange={setTaxMethod} />
+
+            <TransactionCards3D rows={ledger.rows} />
+
+            <ClassifiedTransactions3D transactions={ledger.rows} />
+
+            <Charts3D rows={ledger.rows} />
+
+            <TaxSummary summary={ledger.summary} />
+
+            <ProofOfExistenceSeal
+              transactions={ledger.rows}
+              summary={ledger.summary}
+              uid={user.uid}
+            />
+
+            <ExportPackage
+              transactions={ledger.rows}
+              summary={ledger.summary}
+              taxMethod={taxMethod}
+            />
+          </div>
+        )}
+
+        <ChatbotWidget portfolio={chatbotPortfolio} />
+      </div>
+    </>
+  );
+}
